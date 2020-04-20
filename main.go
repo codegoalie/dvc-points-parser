@@ -76,13 +76,14 @@ func parseFile(file *os.File) (Resort, error) {
 	state := 0
 	roomTypes := []RoomType{}
 	viewLegend := map[string]string{}
-	typeIndex := 0
+	stateInnterIndex := 0
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
 		if line == "" {
 			state++
+			stateInnterIndex = 0
 			continue
 		}
 
@@ -92,13 +93,15 @@ func parseFile(file *os.File) (Resort, error) {
 		case 1:
 			parseRoomType(&roomTypes, line)
 		case 2:
-			parseViewLegend(&viewLegend, line)
+			parseRoomDescriptions(&roomTypes[stateInnterIndex], line)
 		case 3:
-			parseRoomViews(&resort, roomTypes[typeIndex], viewLegend, line)
-			typeIndex++
+			parseViewLegend(&viewLegend, line)
+		case 4:
+			parseRoomViews(&resort, roomTypes[stateInnterIndex], viewLegend, line)
 		default:
 			break
 		}
+		stateInnterIndex++
 	}
 
 	if err := scanner.Err(); err != nil {
@@ -117,6 +120,10 @@ func parseRoomType(roomTypes *[]RoomType, line string) {
 	*roomTypes = append(*roomTypes, RoomType{
 		Name: line,
 	})
+}
+
+func parseRoomDescriptions(roomType *RoomType, line string) {
+	roomType.Description = line
 }
 
 func parseViewLegend(legend *map[string]string, line string) {

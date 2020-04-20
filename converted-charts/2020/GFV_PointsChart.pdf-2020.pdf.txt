@@ -5,6 +5,11 @@ ONE-BEDROOM VILLA
 TWO-BEDROOM VILLA
 THREE-BEDROOM GRAND VILLA
 
+(Sleeps up to 5)
+(Sleeps up to 5) 
+(Sleeps up to 9)       
+(Sleeps up to 12)
+
 S - Standard View
 L - Lake View
 
