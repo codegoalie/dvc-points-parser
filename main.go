@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"regexp"
 	"strings"
-	"time"
 
 	"github.com/davecgh/go-spew/spew"
+	tinydate "github.com/lane-c-wagner/go-tinydate"
 )
 
 // Resort models a WDW resort
@@ -28,11 +29,13 @@ type RoomType struct {
 
 // PointBlock models the points needed to stay in a RoomType over a range of dates
 type PointBlock struct {
-	StartDate     time.Time
-	EndDate       time.Time
+	StartDate     tinydate.TinyDate
+	EndDate       tinydate.TinyDate
 	WeekdayPoints int
 	WeekendPoints int
 }
+
+const monthDayPattern = `^[a-zA-z]{3} \d`
 
 func main() {
 	var files []string
@@ -78,6 +81,8 @@ func parseFile(file *os.File) (Resort, error) {
 	viewLegend := map[string]string{}
 	stateInnterIndex := 0
 
+	monthDayRegexp := regexp.MustCompile(monthDayPattern)
+
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := strings.TrimSpace(scanner.Text())
@@ -98,6 +103,8 @@ func parseFile(file *os.File) (Resort, error) {
 			parseViewLegend(&viewLegend, line)
 		case 4:
 			parseRoomViews(&resort, roomTypes[stateInnterIndex], viewLegend, line)
+		case 5:
+
 		default:
 			break
 		}
