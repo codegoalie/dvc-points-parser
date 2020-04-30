@@ -10,8 +10,8 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 
+	"github.com/davecgh/go-spew/spew"
 	tinydate "github.com/lane-c-wagner/go-tinydate"
 )
 
@@ -32,8 +32,8 @@ type RoomType struct {
 
 // PointBlock models the points needed to stay in a RoomType over a range of dates
 type PointBlock struct {
-	StartDate     tinydate.TinyDate
-	EndDate       tinydate.TinyDate
+	CheckInAt     tinydate.TinyDate
+	CheckOutAt    tinydate.TinyDate
 	WeekdayPoints int
 	WeekendPoints int
 }
@@ -44,8 +44,8 @@ type collector struct {
 }
 
 type dateRange struct {
-	CheckInAt  time.Time
-	CheckOutAt time.Time
+	CheckInAt  tinydate.TinyDate
+	CheckOutAt tinydate.TinyDate
 }
 
 const dateParseFormat = "Jan 2 2006"
@@ -73,7 +73,7 @@ func main() {
 
 	resorts := make([]Resort, len(files))
 	for i, filename := range files {
-		fmt.Println(filename)
+		fmt.Println("Parsing", filename)
 		file, err := os.Open(filename)
 		if err != nil {
 			log.Fatal(err)
@@ -89,7 +89,7 @@ func main() {
 		}
 	}
 
-	// spew.Dump(resorts)
+	spew.Dump(resorts)
 }
 
 func parseFile(file *os.File, year string) (Resort, error) {
@@ -125,13 +125,15 @@ func parseFile(file *os.File, year string) (Resort, error) {
 		case 6:
 			parsePoints(coll, line)
 		default:
-			// collectorToResort(coll, &resort)
+			collectorToResort(coll, &resort)
 			coll = &collector{}
 			parseDates(coll, year, line)
 			state = 5
 		}
 		stateInnterIndex++
 	}
+
+	collectorToResort(coll, &resort)
 
 	err := scanner.Err()
 	if err != nil && !errors.Is(err, io.EOF) {
@@ -171,7 +173,7 @@ func parseRoomViews(resort *Resort, roomType RoomType, viewLegend map[string]str
 func parseDates(coll *collector, year string, line string) {
 	dates := strings.Split(line, "--")
 
-	checkInAt, err := time.Parse(dateParseFormat, dates[0]+" "+year)
+	checkInAt, err := tinydate.Parse(dateParseFormat, dates[0]+" "+year)
 	if err != nil {
 		err = fmt.Errorf("failed to parse check in date '%s %s': %w", dates[0], year, err)
 		log.Fatal(err)
@@ -183,7 +185,7 @@ func parseDates(coll *collector, year string, line string) {
 		checkOutString = parts[0] + " "
 	}
 	checkOutString += dates[1]
-	checkOutAt, err := time.Parse(dateParseFormat, checkOutString+" "+year)
+	checkOutAt, err := tinydate.Parse(dateParseFormat, checkOutString+" "+year)
 	if err != nil {
 		err = fmt.Errorf("failed to parse check out date '%s %s': %w", checkOutString, year, err)
 		log.Fatal(err)
@@ -213,5 +215,20 @@ func parsePoints(coll *collector, line string) {
 	}
 	if days == "FRI--SAT" || days == "SUN--SAT" {
 		coll.Points[1] = points
+	}
+}
+
+func collectorToResort(coll *collector, resort *Resort) {
+	for i := 0; i < len(resort.RoomTypes); i++ {
+		pointChart := []PointBlock{}
+		for _, dates := range coll.Dates {
+			pointChart = append(pointChart, PointBlock{
+				CheckInAt:     dates.CheckInAt,
+				CheckOutAt:    dates.CheckOutAt,
+				WeekdayPoints: coll.Points[0][i],
+				WeekendPoints: coll.Points[1][i],
+			})
+		}
+		resort.RoomTypes[i].PointChart = pointChart
 	}
 }

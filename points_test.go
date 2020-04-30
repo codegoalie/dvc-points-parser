@@ -69,39 +69,3 @@ func TestOneSetOfPoints(t *testing.T) {
 		}
 	}
 }
-
-func baseResort() *Resort {
-	return &Resort{
-		Name: "The Villas at Disney's Grand Floridian Resort & Spa",
-		RoomTypes: []RoomType{
-			{
-				Name:     "Deluxe studio",
-				ViewType: "Standard",
-			},
-			{
-				Name:     "Deluxe studio",
-				ViewType: "Lake",
-			},
-			{
-				Name:     "1 bedroom villa",
-				ViewType: "Standard",
-			},
-			{
-				Name:     "1 bedroom villa",
-				ViewType: "Lake",
-			},
-			{
-				Name:     "2 bedroom villa",
-				ViewType: "Standard",
-			},
-			{
-				Name:     "2 bedroom villa",
-				ViewType: "Lake",
-			},
-			{
-				Name:     "3 bedroom villa",
-				ViewType: "Lake",
-			},
-		},
-	}
-}

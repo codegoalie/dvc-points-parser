@@ -2,14 +2,15 @@ package main
 
 import (
 	"testing"
-	"time"
+
+	tinydate "github.com/lane-c-wagner/go-tinydate"
 )
 
 func TestDatesSameMonth(t *testing.T) {
 	line := "Jan 1--31"
 	coll := &collector{}
-	expexctedCheckIn, _ := time.Parse("Jan 2 2006", "Jan 1 2020")
-	expexctedCheckOut, _ := time.Parse("Jan 2 2006", "Jan 31 2020")
+	expexctedCheckIn, _ := tinydate.Parse("Jan 2 2006", "Jan 1 2020")
+	expexctedCheckOut, _ := tinydate.Parse("Jan 2 2006", "Jan 31 2020")
 
 	parseDates(coll, "2020", line)
 
@@ -29,8 +30,8 @@ func TestDatesSameMonth(t *testing.T) {
 func TestDatesCrossMonth(t *testing.T) {
 	line := "Jan 1--Feb 3"
 	coll := &collector{}
-	expexctedCheckIn, _ := time.Parse("Jan 2 2006", "Jan 1 2020")
-	expexctedCheckOut, _ := time.Parse("Jan 2 2006", "Feb 3 2020")
+	expexctedCheckIn, _ := tinydate.Parse("Jan 2 2006", "Jan 1 2020")
+	expexctedCheckOut, _ := tinydate.Parse("Jan 2 2006", "Feb 3 2020")
 
 	parseDates(coll, "2020", line)
 
