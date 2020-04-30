@@ -2,13 +2,15 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
-	"github.com/davecgh/go-spew/spew"
 	tinydate "github.com/lane-c-wagner/go-tinydate"
 )
 
@@ -35,11 +37,24 @@ type PointBlock struct {
 	WeekendPoints int
 }
 
-const monthDayPattern = `^[a-zA-z]{3} \d`
+type collector struct {
+	Dates  []dateRange
+	Points [2][]int
+}
+
+type dateRange struct {
+	CheckInAt  time.Time
+	CheckOutAt time.Time
+}
+
+const dateParseFormat = "Jan 2 2006"
+
+var monthDayRegexp = regexp.MustCompile(`^[a-zA-z]{3} \d`)
+var yearRegexp = regexp.MustCompile(`(\d{4})`)
 
 func main() {
 	var files []string
-	files = append(files, "converted-charts/2020/GFV_PointsChart.pdf-2020.pdf.txt")
+	files = append(files, "converted-charts/2020/GFV_PointsChart-2020.txt")
 
 	// root := "converted-charts/"
 	// err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
@@ -64,24 +79,25 @@ func main() {
 		}
 		defer file.Close()
 
-		resorts[i], err = parseFile(file)
+		year := yearRegexp.FindStringSubmatch(filename)[1]
+
+		resorts[i], err = parseFile(file, year)
 		if err != nil {
 			err = fmt.Errorf("failed to parse file %s: %w", filename, err)
 			log.Fatal(err)
 		}
 	}
 
-	spew.Dump(resorts)
+	// spew.Dump(resorts)
 }
 
-func parseFile(file *os.File) (Resort, error) {
+func parseFile(file *os.File, year string) (Resort, error) {
 	resort := Resort{}
 	state := 0
 	roomTypes := []RoomType{}
 	viewLegend := map[string]string{}
 	stateInnterIndex := 0
-
-	monthDayRegexp := regexp.MustCompile(monthDayPattern)
+	coll := &collector{}
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -104,14 +120,20 @@ func parseFile(file *os.File) (Resort, error) {
 		case 4:
 			parseRoomViews(&resort, roomTypes[stateInnterIndex], viewLegend, line)
 		case 5:
-
+			parseDates(coll, year, line)
+		case 6:
+			// parsePoints(coll, line)
 		default:
-			break
+			// collectorToResort(coll, &resort)
+			coll = &collector{}
+			parseDates(coll, year, line)
+			state = 5
 		}
 		stateInnterIndex++
 	}
 
-	if err := scanner.Err(); err != nil {
+	err := scanner.Err()
+	if err != nil && !errors.Is(err, io.EOF) {
 		err = fmt.Errorf("failed to read from file: %w", err)
 		return resort, err
 	}
@@ -143,4 +165,31 @@ func parseRoomViews(resort *Resort, roomType RoomType, viewLegend map[string]str
 		roomType.ViewType = viewLegend[viewKey]
 		resort.RoomTypes = append(resort.RoomTypes, roomType)
 	}
+}
+
+func parseDates(coll *collector, year string, line string) {
+	dates := strings.Split(line, "--")
+
+	checkInAt, err := time.Parse(dateParseFormat, dates[0]+" "+year)
+	if err != nil {
+		err = fmt.Errorf("failed to parse check in date '%s %s': %w", dates[0], year, err)
+		log.Fatal(err)
+	}
+
+	checkOutString := ""
+	if strings.Index(dates[1], " ") == -1 {
+		parts := strings.Fields(dates[0])
+		checkOutString = parts[0] + " "
+	}
+	checkOutString += dates[1]
+	checkOutAt, err := time.Parse(dateParseFormat, checkOutString+" "+year)
+	if err != nil {
+		err = fmt.Errorf("failed to parse check out date '%s %s': %w", checkOutString, year, err)
+		log.Fatal(err)
+	}
+
+	coll.Dates = append(coll.Dates, dateRange{
+		CheckInAt:  checkInAt,
+		CheckOutAt: checkOutAt,
+	})
 }
