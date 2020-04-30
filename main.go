@@ -8,6 +8,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -122,7 +123,7 @@ func parseFile(file *os.File, year string) (Resort, error) {
 		case 5:
 			parseDates(coll, year, line)
 		case 6:
-			// parsePoints(coll, line)
+			parsePoints(coll, line)
 		default:
 			// collectorToResort(coll, &resort)
 			coll = &collector{}
@@ -192,4 +193,25 @@ func parseDates(coll *collector, year string, line string) {
 		CheckInAt:  checkInAt,
 		CheckOutAt: checkOutAt,
 	})
+}
+
+func parsePoints(coll *collector, line string) {
+	fields := strings.Fields(line)
+	days := fields[0]
+	points := []int{}
+
+	for i := 1; i < len(fields); i++ {
+		pts, err := strconv.Atoi(fields[i])
+		if err != nil {
+			err = fmt.Errorf("failed to parse points '%s': %w", fields[i], err)
+			log.Fatal(err)
+		}
+		points = append(points, pts)
+	}
+	if days == "SUN--THU" || days == "SUN--SAT" {
+		coll.Points[0] = points
+	}
+	if days == "FRI--SAT" || days == "SUN--SAT" {
+		coll.Points[1] = points
+	}
 }
