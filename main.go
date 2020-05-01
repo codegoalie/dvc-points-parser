@@ -7,6 +7,7 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -55,21 +56,21 @@ var yearRegexp = regexp.MustCompile(`(\d{4})`)
 
 func main() {
 	var files []string
-	files = append(files, "converted-charts/2020/CCVC_PointsChart-2020.txt")
+	// files = append(files, "converted-charts/2020/CCVC_PointsChart-2020.txt")
 
-	// root := "converted-charts/"
-	// err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-	// 	if info.IsDir() {
-	// 		return nil
-	// 	}
+	root := "converted-charts/"
+	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			return nil
+		}
 
-	// 	files = append(files, path)
+		files = append(files, path)
 
-	// 	return nil
-	// })
-	// if err != nil {
-	// 	panic(err)
-	// }
+		return nil
+	})
+	if err != nil {
+		panic(err)
+	}
 
 	resorts := make([]Resort, len(files))
 	for i, filename := range files {
