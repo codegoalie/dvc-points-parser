@@ -172,7 +172,7 @@ func parseRoomViews(resort *Resort, roomType RoomType, viewLegend map[string]str
 }
 
 func parseDates(coll *collector, year string, line string) {
-	dates := strings.Split(line, "--")
+	dates := strings.Split(line, " - ")
 
 	checkInAt, err := tinydate.Parse(dateParseFormat, dates[0]+" "+year)
 	if err != nil {

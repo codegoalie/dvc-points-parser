@@ -18,47 +18,47 @@ S           B/P
 S           B/P
 B/P
 
-Sep 1--19
+Sep 1 - 19
 
 SUN--THU  9    14           19          27    29          36                                                                                                                      76
 FRI--SAT  13   16           27          30    35          41                                                                                                                      88
 
-Jan 1--31
-Sep 20 --30
-Dec 1--23
+Jan 1 - 31
+Sep 20  - 30
+Dec 1 - 23
 
 SUN--THU  10   15           22          29    31          39                                                                                                                      81
 FRI--SAT  14   16           28          34    38          44                                                                                                                      91
 
-May 1--Jun 10
-Oct 1 -- Nov 23
-Nov 27 -- 30
+May 1 - Jun 10
+Oct 1  - Nov 23
+Nov 27 - 30
 
-                                SUN--THU  12   16           24          32    32          41                                                                                                                      88
+SUN--THU  12   16           24          32    32          41                                                                                                                      88
 FRI--SAT  15   17           30          37    41          47                                                                                                                      98
 
-Feb 1--15
-Aug 16--31
+Feb 1 - 15
+Aug 16 - 31
 
-                                SUN--THU  14   17           28          35    38          43                                                                                                                      93
+SUN--THU  14   17           28          35    38          43                                                                                                                      93
 FRI--SAT  17   20           33          40    45          49                                                                                                                     104
 
-Apr 11--30
-Jun 11--Aug 15
+Apr 11 - 30
+Jun 11 - Aug 15
 
-                                SUN--THU  14   18           30          36    41          47                                                                                                                     103
+SUN--THU  14   18           30          36    41          47                                                                                                                     103
 FRI--SAT  18   21           34          42    47          54                                                                                                                     117
 
-Feb 16--28
-Mar 1--27
-Apr 5--10
-Nov 24--26
+Feb 16 - 28
+Mar 1 - 27
+Apr 5 - 10
+Nov 24 - 26
 
 SUN--THU  15   19           30          38    42          50                                                                                                                     111
 FRI--SAT  19   22           35          43    48          56                                                                                                                     125
 
-Mar 28--Apr 4
-Dec 24--31
+Mar 28 - Apr 4
+Dec 24 - 31
 
-                                SUN--THU  21   27           41          50    59          67                                                                                                                     133
+SUN--THU  21   27           41          50    59          67                                                                                                                     133
 FRI--SAT  25   29           48          56    67          77                                                                                                                     145

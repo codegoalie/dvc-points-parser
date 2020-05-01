@@ -4,6 +4,7 @@ DELUXE STUDIO
 ONE-BEDROOM VILLA
 TWO-BEDROOM VILLA
 THREE-BEDROOM GRAND VILLA
+TWO-BEDROOM CABIN
 
 (Sleeps up to 4)
 (Sleeps up to 4)
@@ -11,47 +12,55 @@ THREE-BEDROOM GRAND VILLA
 (Sleeps up to 12)
 (Sleeps up to 8)
 
-Sep 1--19
+S - Standard View
+
+S
+S
+S
+S
+S
+
+Sep 1 - 19
 
 SUN--THU      14                27                36                                                                                                                            93                     86
 FRI--SAT      16                32                42                109                                                                                                                                102
 
-Jan 1--31
-Sep 20 --30
-Dec 1--23
+Jan 1 - 31
+Sep 20 - 30
+Dec 1 - 23
 
 SUN--THU      15                30                38                101                                                                                                                                94
 FRI--SAT      16                34                44                116                                                                                                                                109
 
-May 1--Jun 10
-Oct 1 -- Nov 23
-Nov 27 -- 30
+May 1 - Jun 10
+Oct 1 - Nov 23
+Nov 27 - 30
 
 SUN--THU      16                32                41                108                                                                                                                                102
 FRI--SAT      17                36                47                124                                                                                                                                119
 
-Feb 1--15
-Aug 16--31
+Feb 1 - 15
+Aug 16 - 31
 
 SUN--THU      16                35                44                115                                                                                                                                108
 FRI--SAT      20                40                49                132                                                                                                                                126
 
-Apr 11--30
-Jun 11--Aug 15
+Apr 11 - 30
+Jun 11 - Aug 15
 
 SUN--THU      17                36                47                123                                                                                                                                116
 FRI--SAT      20                42                53                140                                                                                                                                134
 
-Feb 16--28
-Mar 1--27
-Apr 5--10
-Nov 24--26
+Feb 16 - 28
+Mar 1 - 27
+Apr 5 - 10
+Nov 24 - 26
 
 SUN--THU      18                37                50                128                                                                                                                                123
 FRI--SAT      22                43                56                148                                                                                                                                142
 
-Mar 28--Apr 4
-Dec 24--31
+Mar 28 - Apr 4
+Dec 24 - 31
 
 SUN--THU      25                48                64                176                                                                                                                                170
 FRI--SAT      29                54                72                205                                                                                                                                196

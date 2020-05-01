@@ -14,37 +14,37 @@ S
 S
 S
 
-Jan 1--31
-Sep 1--30
-Dec 1--14
+Jan 1 - 31
+Sep 1 - 30
+Dec 1 - 14
 
 SUN--THU    15                27                                                                                                                            37
 FRI--SAT  16                31                                                                                                                            43
 
-Oct 1--Nov 24
-Nov 28--30
-Dec 15--23
+Oct 1 - Nov 24
+Nov 28 - 30
+Dec 15 - 23
 
 SUN--THU    15                29                                                                                                                            38
 FRI--SAT  16                33                                                                                                                            44
 
-Feb 1--15
-May 1--Jun 10
-Aug 16--31
+Feb 1 - 15
+May 1 - Jun 10
+Aug 16 - 31
 
 SUN--THU    16                35                                                                                                                            43
 FRI--SAT  20                40                                                                                                                            49
 
-Feb 16--Apr 4
-Apr 19--30
-Jun 11--Aug 15
-Nov 25--27
+Feb 16 - Apr 4
+Apr 19 - 30
+Jun 11 - Aug 15
+Nov 25 - 27
 
 SUN--THU    18                37                                                                                                                            48
 FRI--SAT  22                42                                                                                                                            55
 
-Apr 5--18
-Dec 24--31
+Apr 5 - 18
+Dec 24 - 31
 
 SUN--THU    25                50                                                                                                                            65
 FRI--SAT  28                56                                                                                                                            71

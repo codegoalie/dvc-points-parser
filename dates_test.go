@@ -7,7 +7,7 @@ import (
 )
 
 func TestDatesSameMonth(t *testing.T) {
-	line := "Jan 1--31"
+	line := "Jan 1 - 31"
 	coll := &collector{}
 	expexctedCheckIn, _ := tinydate.Parse("Jan 2 2006", "Jan 1 2020")
 	expexctedCheckOut, _ := tinydate.Parse("Jan 2 2006", "Jan 31 2020")
@@ -28,7 +28,7 @@ func TestDatesSameMonth(t *testing.T) {
 }
 
 func TestDatesCrossMonth(t *testing.T) {
-	line := "Jan 1--Feb 3"
+	line := "Jan 1 - Feb 3"
 	coll := &collector{}
 	expexctedCheckIn, _ := tinydate.Parse("Jan 2 2006", "Jan 1 2020")
 	expexctedCheckOut, _ := tinydate.Parse("Jan 2 2006", "Feb 3 2020")

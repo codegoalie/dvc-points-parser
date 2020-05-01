@@ -17,26 +17,26 @@ S
 S
 S
 
-Jan 1--31
-Dec 1--17
+Jan 1 - 31
+Dec 1 - 17
 
 SUN--THU  6                 13                19                                                                                                                                              28
 FRI--SAT  12                19                23                                                                                                                                              39
 
-Feb 1--Mar 31
-Nov 1--30
-Dec 18--31
+Feb 1 - Mar 31
+Nov 1 - 30
+Dec 18 - 31
 
 SUN--THU  10                21                25                                                                                                                                              47
 FRI--SAT  15                28                35                                                                                                                                              60
 
-Apr 1--Jun 10
-Aug 28--Oct 31
+Apr 1 - Jun 10
+Aug 28 - Oct 31
 
 SUN--THU  14                27                33                                                                                                                                              59
 FRI--SAT  23                44                56                                                                                                                                              95
 
-Jun 11--Aug 27
+Jun 11 - Aug 27
 
 SUN--THU  15                31                41                                                                                                                                              71
 FRI--SAT  27                52                66                                                                                                                                              112

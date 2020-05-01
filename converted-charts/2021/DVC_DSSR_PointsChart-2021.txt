@@ -12,7 +12,6 @@ THREE-BEDROOM TREEHOUSE VILLA
 (Sleeps up to 12)
 (Sleeps up to 9)
 
-
 S - Standard
 P - Preferred
 
@@ -22,48 +21,47 @@ S                                                                               
 S                                     P
 S
 
-
-Sep 1--19
+Sep 1 - 19
 
 SUN--THU  10   12              21          25       29                                                                                          36   63                                    74           38
 FRI--SAT  14   16              27          31       34                                                                                          41   72                                    84           43
 
-Jan 1--31
-Sep 20 --30
-Dec 1--23
+Jan 1 - 31
+Sep 20  - 30
+Dec 1 - 23
 
 SUN--THU  12   14              24          28       32                                                                                          37   68                                    77           41
 FRI--SAT  15   17              29          34       36                                                                                          42   78                                    89           45
 
-May 1--Jun 10
-Oct 1 -- Nov 23
-Nov 27 -- 30
+May 1 - Jun 10
+Oct 1  - Nov 23
+Nov 27  - 30
 
 SUN--THU  13   15              27          31       34                                                                                          41   74                                    84           43
 FRI--SAT  15   19              32          36       39                                                                                          48   83                                    94           49
 
-Feb 1--15
-Aug 16--31
+Feb 1 - 15
+Aug 16 - 31
 
 SUN--THU  14   15              30          33       36                                                                                          42   77                                    88           45
 FRI--SAT  17   19              34          38       39                                                                                          49   87                                    99           52
 
-Apr 11--30
-Jun 11--Aug 15
+Apr 11 - 30
+Jun 11 - Aug 15
 
 SUN--THU  14   16              31          35       38                                                                                          46   88                                    101          48
 FRI--SAT  18   20              35          40       45                                                                                          55   99                                    115          55
 
-Feb 16--28
-Mar 1--27
-Apr 5--10
-Nov 24--26
+Feb 16 - 28
+Mar 1 - 27
+Apr 5 - 10
+Nov 24 - 26
 
 SUN--THU  15   18              32          37       42                                                                                          48   96                                    110          51
 FRI--SAT  18   21              36          42       47                                                                                          58   109                                   125          58
 
-Mar 28--Apr 4
-Dec 24--31
+Mar 28 - Apr 4
+Dec 24 - 31
 
 SUN--THU  21   23              43          49       56                                                                                          67   113                                   132          66
 FRI--SAT  25   28              47          53       63                                                                                          75   126                                   139          76
