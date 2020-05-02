@@ -1,235 +1,238 @@
 package main
 
 import (
-	"bufio"
+	"database/sql"
 	"errors"
 	"fmt"
-	"io"
 	"log"
 	"os"
-	"path/filepath"
-	"regexp"
-	"strconv"
-	"strings"
+	"time"
 
-	"github.com/davecgh/go-spew/spew"
-	tinydate "github.com/lane-c-wagner/go-tinydate"
+	"github.com/codegoalie/dvc-points-parser/resorts"
+	gonanoid "github.com/matoous/go-nanoid"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-// Resort models a WDW resort
-type Resort struct {
-	Name      string
-	RoomTypes []RoomType
-}
-
-// RoomType models a room size and view combination
-type RoomType struct {
-	Name        string
-	Description string
-	ViewType    string
-
-	PointChart []PointBlock
-}
-
-// PointBlock models the points needed to stay in a RoomType over a range of dates
-type PointBlock struct {
-	CheckInAt     tinydate.TinyDate
-	CheckOutAt    tinydate.TinyDate
-	WeekdayPoints int
-	WeekendPoints int
-}
-
-type collector struct {
-	Dates  []dateRange
-	Points [2][]int
-}
-
-type dateRange struct {
-	CheckInAt  tinydate.TinyDate
-	CheckOutAt tinydate.TinyDate
-}
-
-const dateParseFormat = "Jan 2 2006"
-
-var monthDayRegexp = regexp.MustCompile(`^[a-zA-z]{3} \d`)
-var yearRegexp = regexp.MustCompile(`(\d{4})`)
+var parsedResorts []resorts.Resort
 
 func main() {
-	var files []string
-	// files = append(files, "converted-charts/2020/CCVC_PointsChart-2020.txt")
-
-	root := "converted-charts/"
-	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if info.IsDir() {
-			return nil
+	reParse := true
+	if reParse {
+		root := "converted-charts/"
+		var err error
+		parsedResorts, err = resorts.ParseFiles(root)
+		if err != nil {
+			err = fmt.Errorf("failed to parse files: %w", err)
+			log.Fatal(err)
 		}
 
-		files = append(files, path)
-
-		return nil
-	})
-	if err != nil {
-		panic(err)
+		// spew.Dump(resorts[0].Name, resorts[0].RoomTypes[0])
 	}
 
-	resorts := make([]Resort, len(files))
-	for i, filename := range files {
-		fmt.Println("Parsing", filename)
-		file, err := os.Open(filename)
+	dbFile := "./dvc-points.sqlite3"
+	if reParse {
+		os.Remove(dbFile)
+	}
+
+	db, err := sql.Open("sqlite3", dbFile)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	if reParse {
+		err = createResorts(db)
 		if err != nil {
 			log.Fatal(err)
 		}
-		defer file.Close()
 
-		year := yearRegexp.FindStringSubmatch(filename)[1]
-
-		resorts[i], err = parseFile(file, year)
+		err = createRoomTypes(db)
 		if err != nil {
-			err = fmt.Errorf("failed to parse file %s: %w", filename, err)
+			log.Fatal(err)
+		}
+
+		err = createPoints(db)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = insertResorts(db, parsedResorts)
+		if err != nil {
 			log.Fatal(err)
 		}
 	}
 
-	spew.Dump(resorts)
-}
-
-func parseFile(file *os.File, year string) (Resort, error) {
-	resort := Resort{}
-	state := 0
-	roomTypes := []RoomType{}
-	viewLegend := map[string]string{}
-	stateInnterIndex := 0
-	coll := &collector{}
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-		if line == "" {
-			state++
-			stateInnterIndex = 0
-			continue
-		}
-
-		switch state {
-		case 0:
-			parseName(&resort, line)
-		case 1:
-			parseRoomType(&roomTypes, line)
-		case 2:
-			parseRoomDescriptions(&roomTypes[stateInnterIndex], line)
-		case 3:
-			parseViewLegend(&viewLegend, line)
-		case 4:
-			parseRoomViews(&resort, roomTypes[stateInnterIndex], viewLegend, line)
-		case 5:
-			parseDates(coll, year, line)
-		case 6:
-			parsePoints(coll, line)
-		default:
-			collectorToResort(coll, &resort)
-			coll = &collector{}
-			parseDates(coll, year, line)
-			state = 5
-		}
-		stateInnterIndex++
-	}
-
-	collectorToResort(coll, &resort)
-
-	err := scanner.Err()
-	if err != nil && !errors.Is(err, io.EOF) {
-		err = fmt.Errorf("failed to read from file: %w", err)
-		return resort, err
-	}
-
-	return resort, nil
-}
-
-func parseName(resort *Resort, line string) {
-	resort.Name = line
-}
-
-func parseRoomType(roomTypes *[]RoomType, line string) {
-	*roomTypes = append(*roomTypes, RoomType{
-		Name: line,
-	})
-}
-
-func parseRoomDescriptions(roomType *RoomType, line string) {
-	roomType.Description = line
-}
-
-func parseViewLegend(legend *map[string]string, line string) {
-	fields := strings.Fields(line)
-	(*legend)[fields[0]] = fields[2]
-}
-
-func parseRoomViews(resort *Resort, roomType RoomType, viewLegend map[string]string, line string) {
-	for _, viewKey := range strings.Fields(line) {
-		roomType.ViewType = viewLegend[viewKey]
-		resort.RoomTypes = append(resort.RoomTypes, roomType)
-	}
-}
-
-func parseDates(coll *collector, year string, line string) {
-	dates := strings.Split(line, " - ")
-
-	checkInAt, err := tinydate.Parse(dateParseFormat, dates[0]+" "+year)
+	rows, err := db.Query(`
+	select resorts.name, room_types.name, view_type, sum(amount)
+	from points
+	join room_types on points.room_type_id = room_types.id
+	join resorts on room_types.resort_id = resorts.id
+	group by resorts.id, room_types.id
+	;
+	`)
 	if err != nil {
-		err = fmt.Errorf("failed to parse check in date '%s %s': %w", dates[0], year, err)
+		log.Fatal(err)
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var resort string
+		var name string
+		var viewType string
+		var points int
+		err = rows.Scan(&resort, &name, &viewType, &points)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println(resort, name, viewType, points)
+	}
+	err = rows.Err()
+	if err != nil && !errors.Is(err, sql.ErrNoRows) {
 		log.Fatal(err)
 	}
 
-	checkOutString := ""
-	if strings.Index(dates[1], " ") == -1 {
-		parts := strings.Fields(dates[0])
-		checkOutString = parts[0] + " "
-	}
-	checkOutString += dates[1]
-	checkOutAt, err := tinydate.Parse(dateParseFormat, checkOutString+" "+year)
+	// stmt, err := db.Prepare("select name from resorts where id = ?")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// defer stmt.Close()
+	// var name string
+	// err = stmt.QueryRow("1").Scan(&name)
+	// if err != nil && !errors.Is(err, sql.ErrNoRows) {
+	// 	log.Fatal(err)
+	// }
+	// fmt.Println(name)
+}
+
+func createResorts(db *sql.DB) error {
+	sqlStmt := `
+	create table resorts (id text not null primary key, name text);
+	delete from resorts;
+	`
+	_, err := db.Exec(sqlStmt)
 	if err != nil {
-		err = fmt.Errorf("failed to parse check out date '%s %s': %w", checkOutString, year, err)
-		log.Fatal(err)
+		err = fmt.Errorf("failed to create resorts table: %w", err)
+		return err
 	}
 
-	coll.Dates = append(coll.Dates, dateRange{
-		CheckInAt:  checkInAt,
-		CheckOutAt: checkOutAt,
-	})
+	return nil
 }
 
-func parsePoints(coll *collector, line string) {
-	fields := strings.Fields(line)
-	days := fields[0]
-	points := []int{}
-
-	for i := 1; i < len(fields); i++ {
-		pts, err := strconv.Atoi(fields[i])
+func insertResorts(db *sql.DB, resorts []resorts.Resort) error {
+	stmt, err := db.Prepare("insert into resorts(id, name) values(?, ?)")
+	if err != nil {
+		err = fmt.Errorf("failed to prepare insert resorts statement: %w", err)
+		return err
+	}
+	defer stmt.Close()
+	for _, resort := range resorts {
+		resortID, err := gonanoid.Nanoid()
+		_, err = stmt.Exec(resortID, resort.Name)
 		if err != nil {
-			err = fmt.Errorf("failed to parse points '%s': %w", fields[i], err)
-			log.Fatal(err)
+			err = fmt.Errorf("failed to insert resort record: %w", err)
+			return err
 		}
-		points = append(points, pts)
+
+		err = insertRoomTypes(db, resortID, resort.RoomTypes)
+		if err != nil {
+			return err
+		}
+
 	}
-	if days == "SUN--THU" || days == "SUN--SAT" {
-		coll.Points[0] = points
-	}
-	if days == "FRI--SAT" || days == "SUN--SAT" {
-		coll.Points[1] = points
-	}
+
+	return nil
 }
 
-func collectorToResort(coll *collector, resort *Resort) {
-	for i := 0; i < len(resort.RoomTypes); i++ {
-		pointChart := []PointBlock{}
-		for _, dates := range coll.Dates {
-			pointChart = append(pointChart, PointBlock{
-				CheckInAt:     dates.CheckInAt,
-				CheckOutAt:    dates.CheckOutAt,
-				WeekdayPoints: coll.Points[0][i],
-				WeekendPoints: coll.Points[1][i],
-			})
-		}
-		resort.RoomTypes[i].PointChart = pointChart
+func createRoomTypes(db *sql.DB) error {
+	sqlStmt := `
+	create table room_types (id text not null primary key, resort_id text, name text, description text, view_type text);
+	delete from room_types;
+	`
+	_, err := db.Exec(sqlStmt)
+	if err != nil {
+		err = fmt.Errorf("failed to create room_types table: %w", err)
+		return err
 	}
+
+	return nil
+}
+
+func insertRoomTypes(db *sql.DB, resortID string, roomTypes []resorts.RoomType) error {
+	stmt, err := db.Prepare("insert into room_types(id, resort_id, name, description, view_type) values(?, ?, ?, ?, ?)")
+	if err != nil {
+		err = fmt.Errorf("failed to prepare insert room_types statement: %w", err)
+		return err
+	}
+	defer stmt.Close()
+
+	for _, roomType := range roomTypes {
+		roomTypeID, err := gonanoid.Nanoid()
+		if err != nil {
+			err = fmt.Errorf("failed to generate roomTypeID: %w", err)
+			return err
+		}
+		_, err = stmt.Exec(roomTypeID, resortID, roomType.Name, roomType.Description, roomType.ViewType)
+		if err != nil {
+			err = fmt.Errorf("failed to insert room_types record: %w", err)
+			return err
+		}
+
+		err = insertPoints(db, roomTypeID, roomType.PointChart)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func createPoints(db *sql.DB) error {
+	sqlStmt := `
+	create table points (id text not null primary key, room_type_id text, stay_on date, amount int);
+	delete from points;
+	`
+	_, err := db.Exec(sqlStmt)
+	if err != nil {
+		err = fmt.Errorf("failed to create points table: %w", err)
+		return err
+	}
+
+	return nil
+
+}
+
+func insertPoints(db *sql.DB, roomTypeID string, pointChart []resorts.PointBlock) error {
+	stmt, err := db.Prepare("insert into points(id, room_type_id, stay_on, amount) values(?, ?, ?, ?)")
+	if err != nil {
+		err = fmt.Errorf("failed to prepare insert points statement: %w", err)
+		return err
+	}
+	defer stmt.Close()
+
+	var points int
+	for _, pointBlock := range pointChart {
+		for {
+			if pointBlock.CheckInAt.After(pointBlock.CheckOutAt) {
+				break
+			}
+
+			pointsID, err := gonanoid.Nanoid()
+			if err != nil {
+				err = fmt.Errorf("failed to genrate points ID: %w", err)
+				return err
+			}
+			points = pointBlock.WeekdayPoints
+			if pointBlock.CheckInAt.Weekday() == time.Saturday || pointBlock.CheckInAt.Weekday() == time.Friday {
+				points = pointBlock.WeekendPoints
+			}
+			_, err = stmt.Exec(pointsID, roomTypeID, pointBlock.CheckInAt.Format("2006-01-02"), points)
+			if err != nil {
+				err = fmt.Errorf("failed to insert points record: %w", err)
+				return err
+			}
+
+			pointBlock.CheckInAt = pointBlock.CheckInAt.AddDate(0, 0, 1)
+		}
+	}
+
+	return nil
 }
