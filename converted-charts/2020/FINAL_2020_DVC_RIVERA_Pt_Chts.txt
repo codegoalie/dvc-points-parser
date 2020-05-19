@@ -1,0 +1,57 @@
+Disney's Riviera Resort
+
+TOWER STUDIO
+DELUXE STUDIO
+ONE-BEDROOM VILLA
+TWO-BEDROOM VILLA
+THREE-BEDROOM GRAND VILLA
+
+(Sleeps up to 2)
+(Sleeps up to 5)
+(Sleeps up to 5)
+(Sleeps up to 9)
+(Sleeps up to 12)
+
+S - Standard View
+P - Preferred View
+
+S
+S    P
+S           P
+S                                                                                     P
+P
+
+Jan 1 - 31
+Sep 1 - 30
+Dec 1 - 14
+
+SUN--THU  11                15   18           31          38    40                                                                                    49               104
+FRI--SAT  13                17   22           36          47    48                                                                                    58               122
+
+Oct 1 - Nov 24
+Nov 28 - 30
+Dec 15 - 23
+
+SUN--THU  12                16   20           33          41    43                                                                                    52               108
+FRI--SAT  15                19   24           41          50    50                                                                                    60               128
+
+Feb 1 - 15
+May 1 - Jun 10
+Aug 16 - 31
+
+SUN--THU  15                18   22           38          49    50                                                                                    59               120
+FRI--SAT  17                20   26           48          58    59                                                                                    70               140
+
+Feb 16 - Apr 4
+Apr 19 - 30
+Jun 11 - Aug 15
+Nov 25 - 27
+
+SUN--THU  18                22   26           43          53    56                                                                                    70               140
+FRI--SAT  21                25   30           53          63    65                                                                                    79               165
+
+Apr 5 - 18
+Dec 24 - 31
+
+SUN--THU  22                28   33           57          67    75                                                                                    85               170
+FRI--SAT  26                32   39           68          80    88                                                                                    100              205
