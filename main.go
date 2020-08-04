@@ -124,12 +124,31 @@ func insertResorts(db *sql.DB, resorts []resorts.Resort) error {
 		return err
 	}
 	defer stmt.Close()
+
+	findStmt, err := db.Prepare("select id from resorts where name = ?")
+	if err != nil {
+		err = fmt.Errorf("failed to prepare select resort statement: %w", err)
+		return err
+	}
+	defer findStmt.Close()
+
 	for _, resort := range resorts {
+
+		var resortID string
 		resortID, err := gonanoid.Nanoid()
-		_, err = stmt.Exec(resortID, resort.Name)
+		err = db.QueryRow("select id from resorts where name = ?", resort.Name).Scan(&resortID)
 		if err != nil {
-			err = fmt.Errorf("failed to insert resort record: %w", err)
-			return err
+			if errors.Is(err, sql.ErrNoRows) {
+				resortID, _ = gonanoid.Nanoid()
+				_, err = stmt.Exec(resortID, resort.Name)
+				if err != nil {
+					err = fmt.Errorf("failed to insert resort record: %w", err)
+					return err
+				}
+			} else {
+				err = fmt.Errorf("failed to fetch existing resort: %w", err)
+				return err
+			}
 		}
 
 		err = insertRoomTypes(db, resortID, resort.RoomTypes)
