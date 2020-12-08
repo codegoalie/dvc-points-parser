@@ -63,11 +63,11 @@ func main() {
 	}
 
 	rows, err := db.Query(`
-	select resorts.name, room_types.name, view_type, sum(amount)
-	from points
-	join room_types on points.room_type_id = room_types.id
-	join resorts on room_types.resort_id = resorts.id
-	group by resorts.id, room_types.id
+  SELECT resorts.name, room_types.name, view_type, SUM(amount)
+    FROM points
+    JOIN room_types ON points.room_type_id = room_types.id
+    JOIN resorts ON room_types.resort_id = resorts.id
+GROUP BY resorts.id, room_types.id
 	;
 	`)
 	if err != nil {
@@ -184,15 +184,31 @@ func insertRoomTypes(db *sql.DB, resortID string, roomTypes []resorts.RoomType) 
 	defer stmt.Close()
 
 	for _, roomType := range roomTypes {
-		roomTypeID, err := gonanoid.Nanoid()
+
+		var roomTypeID string
+		err = db.QueryRow(
+			"select id from room_types where name = ? and view_type = ? and description = ?",
+			roomType.Name,
+			roomType.ViewType,
+			roomType.Description,
+		).Scan(&roomTypeID)
 		if err != nil {
-			err = fmt.Errorf("failed to generate roomTypeID: %w", err)
-			return err
-		}
-		_, err = stmt.Exec(roomTypeID, resortID, roomType.Name, roomType.Description, roomType.ViewType)
-		if err != nil {
-			err = fmt.Errorf("failed to insert room_types record: %w", err)
-			return err
+			if !errors.Is(err, sql.ErrNoRows) {
+				err = fmt.Errorf("failed to fetch existing roomType: %w", err)
+				return err
+			}
+
+			roomTypeID, err := gonanoid.Nanoid()
+			if err != nil {
+				err = fmt.Errorf("failed to generate roomTypeID: %w", err)
+				return err
+			}
+
+			_, err = stmt.Exec(roomTypeID, resortID, roomType.Name, roomType.Description, roomType.ViewType)
+			if err != nil {
+				err = fmt.Errorf("failed to insert room_types record: %w", err)
+				return err
+			}
 		}
 
 		err = insertPoints(db, roomTypeID, roomType.PointChart)
