@@ -173,7 +173,11 @@ func parseRoomViews(resort *Resort, roomType RoomType, viewLegend map[string]str
 func parseDates(coll *collector, year string, line string) {
 	dates := strings.Split(line, " - ")
 
-	checkInAt, err := tinydate.Parse(dateParseFormat, dates[0]+" "+year)
+	if len(dates) < 2 {
+		panic("Failed to parse date " + line)
+	}
+
+	checkInAt, err := parseADate(dates[0] + " " + year)
 	if err != nil {
 		err = fmt.Errorf("failed to parse check in date '%s %s': %w", dates[0], year, err)
 		log.Fatal(err)
@@ -185,7 +189,7 @@ func parseDates(coll *collector, year string, line string) {
 		checkOutString = parts[0] + " "
 	}
 	checkOutString += dates[1]
-	checkOutAt, err := tinydate.Parse(dateParseFormat, checkOutString+" "+year)
+	checkOutAt, err := parseADate(checkOutString + " " + year)
 	if err != nil {
 		err = fmt.Errorf("failed to parse check out date '%s %s': %w", checkOutString, year, err)
 		log.Fatal(err)
@@ -195,6 +199,20 @@ func parseDates(coll *collector, year string, line string) {
 		CheckInAt:  checkInAt,
 		CheckOutAt: checkOutAt,
 	})
+}
+
+func parseADate(in string) (tinydate.TinyDate, error) {
+	pieces := strings.Split(in, " ")
+
+	if len(pieces) < 3 {
+		return tinydate.TinyDate{}, errors.New("not enough parts of a date")
+	}
+
+	if len(pieces[0]) > 3 {
+		pieces[0] = pieces[0][:3]
+	}
+
+	return tinydate.Parse(dateParseFormat, strings.Join(pieces, " "))
 }
 
 func parsePoints(coll *collector, line string) {
