@@ -1,0 +1,51 @@
+Aulani, Disney Vacation Club Villas, Ko Olina, Hawaii
+
+HOTEL ROOM
+DELUXE STUDIO
+ONE-BEDROOM VILLA
+TWO-BEDROOM VILLA
+THREE-BEDROOM GRAND VILLA
+
+(Sleeps up to 4)
+(Sleeps up to 4)
+(Sleeps up to 5)
+(Sleeps up to 9)
+(Sleeps up to 12)
+
+S - Standard View
+I - Island Gardens View
+P - Poolside Gardens View
+O - Ocean View
+
+S
+S    I    P            O
+S    I    P            O
+S    I    P            O
+S                              O
+
+Jan 2 - Feb 26
+Sep 4 - Oct 8
+Nov 15 - 21
+Nov 27 - Dec 22
+
+SUN--SAT    16                17   19   23           25                           34   35   44           46   47   49   59           62   95                             122
+
+Apr 24 - 28
+May 6 - Jun 26
+Oct 9 - Nov 14
+
+SUN--SAT    17                19   21   24           26                           37   44   46           50   51   59   62           69   103                            134
+
+Feb 27 - Apr 7
+Aug 15 - Sep 3
+Nov 22 - 26
+
+SUN--SAT    18                22   25   26           29                           44   46   50           58   60   62   70           79   121                            157
+
+Jan 1 - Jan 1
+Apr 8 - 23
+Apr 29 - May 5
+Jun 27 - Aug 14
+Dec 23 - 31
+
+SUN--SAT    21                24   27   29           31                           46   50   58           62   64   71   79           84   140                            184

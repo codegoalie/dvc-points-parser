@@ -1,0 +1,67 @@
+Disney's Riviera Resort
+
+TOWER STUDIO
+DELUXE STUDIO
+ONE-BEDROOM VILLA
+TWO-BEDROOM VILLA
+THREE-BEDROOM GRAND VILLA
+
+(Sleeps up to 2)
+(Sleeps up to 5)
+(Sleeps up to 5)
+(Sleeps up to 9)
+(Sleeps up to 12)
+
+S - Standard View
+P - Preferred View
+
+S
+S    P
+S           P
+S                P
+P
+
+Sep 1 - 19
+
+SUN--THU  9                 14   17           30          37                                                                                         39               48                     103
+FRI--SAT  13                17   22           35          47                                                                                         48               58                     120
+
+Jan 1 - 31
+Sep 20 - 30
+Dec 1 - 14
+
+SUN--THU  12                16   19           34          41                                                                                         44               52                     108
+FRI--SAT  14                18   24           39          50                                                                                         49               61                     127
+
+May 1 - Jun 10
+Dec 15 - 23
+
+SUN--THU  13                17   20           35          44                                                                                         47               55                     118
+FRI--SAT  15                19   26           42          54                                                                                         53               67                     137
+
+Feb 1 - 15
+Jun 11 - Aug 31
+Oct 1 - Nov 22
+Nov 26 - Nov 30
+
+SUN--THU  14                18   22           37          49                                                                                         51               61                     123
+FRI--SAT  18                20   27           49          59                                                                                         60               72                     144
+
+Apr 24 - 30
+
+SUN--THU  18                20   25           40          50                                                                                         54               68                     135
+FRI--SAT  19                23   29           50          60                                                                                         64               77                     160
+
+Feb 16 - 28
+Mar 1 - Apr 9
+Apr 18 - 23
+Nov 23 - 25
+
+SUN--THU  18                21   27           43          53                                                                                         56               71                     141
+FRI--SAT  20                25   31           53          63                                                                                         65               80                     166
+
+Apr 10 - Apr 17
+Dec 24 - 31
+
+SUN--THU  24                29   35           58          68                                                                                         77               88                     172
+FRI--SAT  28                32   40           69          81                                                                                         90               103                    205
