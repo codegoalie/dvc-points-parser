@@ -206,7 +206,8 @@ func insertRoomTypes(db *sql.DB, resortID string, roomTypes []resorts.RoomType) 
 
 		var roomTypeID string
 		err = db.QueryRow(
-			"select id from room_types where name = ? and view_type = ? and description = ?",
+			"select id from room_types where resort_id = ? and name = ? and view_type = ? and description = ?",
+			resortID,
 			roomType.Name,
 			roomType.ViewType,
 			roomType.Description,
