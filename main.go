@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"time"
 
 	"github.com/codegoalie/dvc-points-parser/resorts"
@@ -16,23 +17,8 @@ import (
 var parsedResorts []resorts.Resort
 
 func main() {
-	reParse := true
-	if reParse {
-		root := "converted-charts/"
-		var err error
-		parsedResorts, err = resorts.ParseFiles(root)
-		if err != nil {
-			err = fmt.Errorf("failed to parse files: %w", err)
-			log.Fatal(err)
-		}
-
-		// spew.Dump(resorts[0].Name, resorts[0].RoomTypes[0])
-	}
-
 	dbFile := "./dvc-points.sqlite3"
-	if reParse {
-		os.Remove(dbFile)
-	}
+	os.Remove(dbFile)
 
 	db, err := sql.Open("sqlite3", dbFile)
 	if err != nil {
@@ -40,27 +26,62 @@ func main() {
 	}
 	defer db.Close()
 
-	if reParse {
-		err = createResorts(db)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = createRoomTypes(db)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = createPoints(db)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = insertResorts(db, parsedResorts)
-		if err != nil {
-			log.Fatal(err)
-		}
+	err = createResorts(db)
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	err = createRoomTypes(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	err = createPoints(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	//root := "vgf/"
+	root := "converted-charts/"
+	// root := "converted-charts/2022/FINAL_2022_DVC_VGF_Pt_Chts.pdf.txt"
+	err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			return nil
+		}
+
+		resort, err := resorts.ParseFile(path)
+		if err != nil {
+			err = fmt.Errorf("failed to parse files: %w", err)
+			log.Println(err)
+			return err
+		}
+
+		err = insertResort(db, resort)
+		if err != nil {
+			err = fmt.Errorf("failed to insert resort: %w", err)
+			log.Println(err)
+			return err
+		}
+
+		return nil
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	// for _, resort := range parsedResorts {
+	// 	if strings.Contains(resort.Name, "Floridian") {
+	// 		spew.Dump(resort)
+	// 		return
+	// 	}
+	// }
+	// spew.Dump(resorts[0].Name, resorts[0].RoomTypes[0])
+
+	// for _, resort := range parsedResorts {
+	// 	if strings.Contains(resort.Name, "Floridian") {
+	// 		fmt.Println(resort.RoomTypes[0].PointChart[0].CheckInAt)
+	// 	}
+	// }
 
 	rows, err := db.Query(`
   SELECT resorts.name, room_types.name, view_type, SUM(amount)
@@ -117,7 +138,7 @@ func createResorts(db *sql.DB) error {
 	return nil
 }
 
-func insertResorts(db *sql.DB, resorts []resorts.Resort) error {
+func insertResort(db *sql.DB, resort resorts.Resort) error {
 	stmt, err := db.Prepare("insert into resorts(id, name) values(?, ?)")
 	if err != nil {
 		err = fmt.Errorf("failed to prepare insert resorts statement: %w", err)
@@ -125,37 +146,35 @@ func insertResorts(db *sql.DB, resorts []resorts.Resort) error {
 	}
 	defer stmt.Close()
 
-	findStmt, err := db.Prepare("select id from resorts where name = ?")
+	// findStmt, err := db.Prepare("select id from resorts where name = ?")
+	// if err != nil {
+	// 	err = fmt.Errorf("failed to prepare select resort statement: %w", err)
+	// 	return err
+	// }
+	// defer findStmt.Close()
+
+	var resortID string
+	resortID, err = gonanoid.Nanoid()
+	err = db.QueryRow("select id from resorts where name = ?", resort.Name).Scan(&resortID)
+	fmt.Println("ID", resortID, err)
 	if err != nil {
-		err = fmt.Errorf("failed to prepare select resort statement: %w", err)
-		return err
-	}
-	defer findStmt.Close()
-
-	for _, resort := range resorts {
-
-		var resortID string
-		resortID, err := gonanoid.Nanoid()
-		err = db.QueryRow("select id from resorts where name = ?", resort.Name).Scan(&resortID)
-		if err != nil {
-			if errors.Is(err, sql.ErrNoRows) {
-				resortID, _ = gonanoid.Nanoid()
-				_, err = stmt.Exec(resortID, resort.Name)
-				if err != nil {
-					err = fmt.Errorf("failed to insert resort record: %w", err)
-					return err
-				}
-			} else {
-				err = fmt.Errorf("failed to fetch existing resort: %w", err)
+		if errors.Is(err, sql.ErrNoRows) {
+			resortID, _ = gonanoid.Nanoid()
+			_, err = stmt.Exec(resortID, resort.Name)
+			if err != nil {
+				err = fmt.Errorf("failed to insert resort record: %w", err)
 				return err
 			}
-		}
-
-		err = insertRoomTypes(db, resortID, resort.RoomTypes)
-		if err != nil {
+		} else {
+			err = fmt.Errorf("failed to fetch existing resort: %w", err)
 			return err
 		}
+	}
+	fmt.Println("ID2", resortID, err)
 
+	err = insertRoomTypes(db, resortID, resort.RoomTypes)
+	if err != nil {
+		return err
 	}
 
 	return nil
@@ -198,7 +217,8 @@ func insertRoomTypes(db *sql.DB, resortID string, roomTypes []resorts.RoomType) 
 				return err
 			}
 
-			roomTypeID, err := gonanoid.Nanoid()
+			roomTypeID, err = gonanoid.Nanoid()
+			fmt.Println("creating room type", roomTypeID)
 			if err != nil {
 				err = fmt.Errorf("failed to generate roomTypeID: %w", err)
 				return err

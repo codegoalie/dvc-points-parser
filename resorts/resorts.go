@@ -7,7 +7,6 @@ import (
 	"io"
 	"log"
 	"os"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -53,43 +52,24 @@ const dateParseFormat = "Jan 2 2006"
 var monthDayRegexp = regexp.MustCompile(`^[a-zA-z]{3} \d`)
 var yearRegexp = regexp.MustCompile(`(\d{4})`)
 
-func ParseFiles(root string) ([]Resort, error) {
-	var files []string
-	// files = append(files, "converted-charts/2020/CCVC_PointsChart-2020.txt")
-
-	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if info.IsDir() {
-			return nil
-		}
-
-		files = append(files, path)
-
-		return nil
-	})
+func ParseFile(filename string) (Resort, error) {
+	file, err := os.Open(filename)
 	if err != nil {
-		panic(err)
+		err = fmt.Errorf("failed to open '%s': %w", filename, err)
+		return Resort{}, err
+	}
+	defer file.Close()
+
+	year := yearRegexp.FindStringSubmatch(filename)[1]
+	fmt.Println("Parsing", filename, year)
+
+	resort, err := parseFile(file, year)
+	if err != nil {
+		err = fmt.Errorf("failed to parse file %s: %w", filename, err)
+		return resort, err
 	}
 
-	resorts := make([]Resort, len(files))
-	for i, filename := range files {
-		file, err := os.Open(filename)
-		if err != nil {
-			err = fmt.Errorf("failed to open '%s': %w", filename, err)
-			return resorts, err
-		}
-		defer file.Close()
-
-		year := yearRegexp.FindStringSubmatch(filename)[1]
-		fmt.Println("Parsing", filename, year)
-
-		resorts[i], err = parseFile(file, year)
-		if err != nil {
-			err = fmt.Errorf("failed to parse file %s: %w", filename, err)
-			return resorts, err
-		}
-	}
-
-	return resorts, nil
+	return resort, nil
 }
 
 func parseFile(file *os.File, year string) (Resort, error) {
