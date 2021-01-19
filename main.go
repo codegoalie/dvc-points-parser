@@ -245,6 +245,7 @@ func createPoints(db *sql.DB) error {
 	sqlStmt := `
 	create table points (id text not null primary key, room_type_id text, stay_on date, amount int);
 	delete from points;
+	create index idx_points_stay_on_room_type_id on points (stay_on, room_type_id);
 	`
 	_, err := db.Exec(sqlStmt)
 	if err != nil {
