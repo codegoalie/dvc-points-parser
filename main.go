@@ -69,20 +69,6 @@ func main() {
 		panic(err)
 	}
 
-	// for _, resort := range parsedResorts {
-	// 	if strings.Contains(resort.Name, "Floridian") {
-	// 		spew.Dump(resort)
-	// 		return
-	// 	}
-	// }
-	// spew.Dump(resorts[0].Name, resorts[0].RoomTypes[0])
-
-	// for _, resort := range parsedResorts {
-	// 	if strings.Contains(resort.Name, "Floridian") {
-	// 		fmt.Println(resort.RoomTypes[0].PointChart[0].CheckInAt)
-	// 	}
-	// }
-
 	rows, err := db.Query(`
   SELECT resorts.name, room_types.name, view_type, SUM(amount)
     FROM points
