@@ -141,6 +141,10 @@ func insertResort(db *sql.DB, resort resorts.Resort) error {
 
 	var resortID string
 	resortID, err = gonanoid.Nanoid()
+	if err != nil {
+		err = fmt.Errorf("failed to generate nanoid: %w", err)
+		return err
+	}
 	err = db.QueryRow("select id from resorts where name = ?", resort.Name).Scan(&resortID)
 	fmt.Println("ID", resortID, err)
 	if err != nil {
