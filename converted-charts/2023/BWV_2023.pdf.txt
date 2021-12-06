@@ -1,0 +1,62 @@
+Disney's BoardWalk Villas
+
+DELUXE STUDIO
+ONE-BEDROOM VILLA
+TWO-BEDROOM VILLA
+THREE-BEDROOM GRAND VILLA
+
+(Sleeps up to 5)
+(Sleeps up to 4)
+(Sleeps up to 9)
+(Sleeps up to 12)
+
+S - Standard View
+B/P - Boardwalk/Preferred View
+
+S    B/P
+S           B/P
+S           B/P
+B/P
+
+Sep 1--30
+
+SUN--THU  9    14           19          26    29          35    76
+FRI--SAT  13   16           27          29    35          40    88
+
+Jan 1--31
+May 1--14
+
+SUN--THU  9    15           23          29    32          39    81
+FRI--SAT  14   16           28          34    38          45    91
+
+May 15--Jun 10
+Dec 1--23
+
+SUN--THU  10   16           24          32    31          41    88
+FRI--SAT  15   17           30          37    41          47    97
+
+Feb 1--15
+Jun 11--Aug 31
+
+SUN--THU  12   16           25          35    33          43    91
+FRI--SAT  16   18           31          39    44          47    102
+
+Oct 1--Nov 21
+Nov 25--Nov 30
+
+SUN--THU  14   18           28          35    39          45    101
+FRI--SAT  17   20           33          41    45          51    114
+
+Feb 16--28
+Mar 1--Apr 1
+Apr 10--30
+Nov 22--24
+
+SUN--THU  15   19           31          39    43          51    110
+FRI--SAT  19   22           36          43    49          55    124
+
+Apr 2--Apr 9
+Dec 24--31
+
+SUN--THU  22   28           42          50    60          68    133
+FRI--SAT  24   29           48          56    67          77    145
