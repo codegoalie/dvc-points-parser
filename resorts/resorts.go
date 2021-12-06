@@ -51,6 +51,7 @@ const dateParseFormat = "Jan 2 2006"
 
 var monthDayRegexp = regexp.MustCompile(`^[a-zA-z]{3} \d`)
 var yearRegexp = regexp.MustCompile(`(\d{4})`)
+var dateSplitRegexp = regexp.MustCompile(`--| - `)
 
 func ParseFile(filename string) (Resort, error) {
 	file, err := os.Open(filename)
@@ -78,7 +79,7 @@ func parseFile(file *os.File, year string) (Resort, error) {
 	roomTypes := []RoomType{}
 	viewLegend := map[string]string{}
 	stateInnterIndex := 0
-	coll := &collector{}
+	coll := collector{}
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
@@ -101,19 +102,19 @@ func parseFile(file *os.File, year string) (Resort, error) {
 		case 4:
 			parseRoomViews(&resort, roomTypes[stateInnterIndex], viewLegend, line)
 		case 5:
-			parseDates(coll, year, line)
+			parseDates(&coll, year, line)
 		case 6:
-			parsePoints(coll, line)
+			parsePoints(&coll, line)
 		default:
-			collectorToResort(coll, &resort)
-			coll = &collector{}
-			parseDates(coll, year, line)
+			collectorToResort(&coll, &resort)
+			coll = collector{}
+			parseDates(&coll, year, line)
 			state = 5
 		}
 		stateInnterIndex++
 	}
 
-	collectorToResort(coll, &resort)
+	collectorToResort(&coll, &resort)
 
 	err := scanner.Err()
 	if err != nil && !errors.Is(err, io.EOF) {
@@ -151,10 +152,10 @@ func parseRoomViews(resort *Resort, roomType RoomType, viewLegend map[string]str
 }
 
 func parseDates(coll *collector, year string, line string) {
-	dates := strings.Split(line, " - ")
+	dates := dateSplitRegexp.Split(line, -1)
 
 	if len(dates) < 2 {
-		panic("Failed to parse date " + line)
+		panic("Failed to split date " + line)
 	}
 
 	checkInAt, err := parseADate(dates[0] + " " + year)
