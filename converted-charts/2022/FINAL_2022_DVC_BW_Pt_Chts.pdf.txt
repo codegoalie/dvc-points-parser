@@ -2,7 +2,7 @@ Disney's BoardWalk Villas
 
 DELUXE STUDIO
 ONE-BEDROOM VILLA
-TWO-BEDROOM VILLA
+TWO-BEDROOM LOCK-OFF VILLA
 THREE-BEDROOM GRAND VILLA
 
 (Sleeps up to 5)
@@ -11,7 +11,7 @@ THREE-BEDROOM GRAND VILLA
 (Sleeps up to 12)
 
 S - Standard View
-B/P - Boardwalk/Preferred View
+B/P - Boardwalk View
 
 S    B/P
 S           B/P

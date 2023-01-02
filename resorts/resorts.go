@@ -62,7 +62,7 @@ func ParseFile(filename string) (Resort, error) {
 	defer file.Close()
 
 	year := yearRegexp.FindStringSubmatch(filename)[1]
-	fmt.Println("Parsing", filename, year)
+	// fmt.Println("Parsing", filename, year)
 
 	resort, err := parseFile(file, year)
 	if err != nil {
