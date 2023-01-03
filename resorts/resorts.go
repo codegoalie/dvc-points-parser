@@ -154,14 +154,19 @@ func parseRoomViews(resort *Resort, roomType RoomType, viewLegend map[string]str
 func parseDates(coll *collector, year string, line string) {
 	dates := dateSplitRegexp.Split(line, -1)
 
-	if len(dates) < 2 {
-		panic("Failed to split date " + line)
-	}
-
 	checkInAt, err := parseADate(dates[0] + " " + year)
 	if err != nil {
 		err = fmt.Errorf("failed to parse check in date '%s %s': %w", dates[0], year, err)
 		log.Fatal(err)
+	}
+
+	// One date means check in and out are the same
+	if len(dates) < 2 {
+		coll.Dates = append(coll.Dates, dateRange{
+			CheckInAt:  checkInAt,
+			CheckOutAt: checkInAt,
+		})
+		return
 	}
 
 	checkOutString := ""

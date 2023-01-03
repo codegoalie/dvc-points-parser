@@ -15,10 +15,12 @@ import (
 	"github.com/codegoalie/dvc-points-parser/resorts"
 )
 
+const dryRun = false
+
 var parsedResorts []resorts.Resort
 
-// const serverURL = "https://utilidoor-wsrcsyye3a-uc.a.run.app/v1"
-const serverURL = "http://localhost:3000/v1"
+// const serverURL = "http://localhost:3000/v1"
+const serverURL = "https://utilidoor-wsrcsyye3a-uc.a.run.app/v1"
 
 // Result mapsa trip finding result
 type Result struct {
@@ -72,12 +74,16 @@ func main() {
 
 	resortMapping := map[string]map[string]map[string]int32{}
 	err = json.Unmarshal([]byte(resortMapJSON), &resortMapping)
+	if err != nil {
+		err = fmt.Errorf("failed to unmarshal resort map: %w", err)
+		log.Fatal(err)
+	}
 	fmt.Println(resortMapping)
 	insertStatement := strings.Builder{}
 	insertStatement.WriteString("INSERT INTO travel_periods (room_type_id, start_on, end_on, weekday_points, weekend_points) VALUES \n")
 
 	//root := "vgf/"
-	root := "converted-charts/2023/"
+	root := "converted-charts/2024/"
 	// // root := "converted-charts/2022/FINAL_2022_DVC_VGF_Pt_Chts.pdf.txt"
 	err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if info.IsDir() {
@@ -92,9 +98,9 @@ func main() {
 			return err
 		}
 
-		idMap := map[string]map[string]int32{}
 		var ok bool
-		if idMap, ok = resortMapping[resort.Name]; !ok {
+		idMap, ok := resortMapping[resort.Name]
+		if !ok {
 			log.Fatal("Resort not found in map:", resort.Name)
 		}
 
@@ -121,8 +127,8 @@ func main() {
 		// }
 
 		for _, roomType := range resort.RoomTypes {
-			typeMap := map[string]int32{}
-			if typeMap, ok = idMap[roomType.Name]; !ok {
+			typeMap, ok := idMap[roomType.Name]
+			if !ok {
 				log.Fatal("Failed to find room type in map", roomType.Name)
 			}
 			var id int32
@@ -143,7 +149,7 @@ func main() {
 			remoteRoom := remoteRoom(roomType, remoteRooms)
 			if remoteRoom == nil {
 				log.Printf("%+v\n", remoteRooms)
-				log.Println("Failed to find remote room type", remote.Name, roomType.Name, roomType.ViewType, "\n")
+				log.Println("Failed to find remote room type", remote.Name, roomType.Name, roomType.ViewType)
 				continue
 			}
 
@@ -208,7 +214,9 @@ func main() {
 						break
 					}
 				}
-				client.CreatePoints(reqs)
+				if !dryRun {
+					client.CreatePoints(reqs)
+				}
 			}
 		}
 
