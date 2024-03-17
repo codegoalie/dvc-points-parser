@@ -27,25 +27,26 @@ type PointsReq struct {
 func New(baseURL string) Repo {
 	return Repo{baseURL: baseURL}
 }
+
 func (r Repo) GetResorts() ([]models.Resort, error) {
-	// client := httpclient.NewClient(httpclient.WithHTTPTimeout(timeout))
+	client := httpclient.NewClient(httpclient.WithHTTPTimeout(timeout))
 
 	resorts := []models.Resort{}
-	// res, err := client.Get(r.baseURL+"/resorts", nil)
-	// if err != nil {
-	// 	err = fmt.Errorf("failed to execute resorts request: %w", err)
-	// 	return resorts, err
-	// }
+	res, err := client.Get(r.baseURL+"/resorts", nil)
+	if err != nil {
+		err = fmt.Errorf("failed to execute resorts request: %w", err)
+		return resorts, err
+	}
 
-	// body, err := io.ReadAll(res.Body)
-	// if err != nil {
-	// 	err = fmt.Errorf("failed to read resorts body: %w", err)
-	// 	return resorts, err
-	// }
-	// res.Body.Close()
-	body := []byte(resortsResponse)
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		err = fmt.Errorf("failed to read resorts body: %w", err)
+		return resorts, err
+	}
+	res.Body.Close()
+	// body := []byte(resortsResponse)
 
-	err := json.Unmarshal(body, &resorts)
+	err = json.Unmarshal(body, &resorts)
 	if err != nil {
 		err = fmt.Errorf("failed to unmarshal resorts response: %w \n\n%s", err, body)
 		return resorts, err
