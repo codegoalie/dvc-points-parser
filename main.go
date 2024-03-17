@@ -650,12 +650,12 @@ const resortMapJSON = `{
 		"Duo Studio": {
 			"Standard View": 145,
 			"Preferred View": 146,
-			"Garden View": 147
+			"Garden Room": 147
 		},
 		"Deluxe Studio": {
 			"Standard View": 148,
 			"Preferred View": 149,
-			"Garden View": 150
+			"Garden Room": 150
 		},
 		"One-Bedroom Villa": {
 			"Preferred View": 151
@@ -671,7 +671,7 @@ const resortMapJSON = `{
 		}
 	},
 	"The Cabins at Disney's Fort Wilderness Resort - A Disney Vacation Club Resort": {
-		"One Bedroom Cabin": {
+		"Cabin": {
 			"Standard View": 155
 		}
 	}
