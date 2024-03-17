@@ -2,4 +2,4 @@
 
 set -e
 
-go run main.go
+go run ./... parse-all

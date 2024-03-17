@@ -2,9 +2,12 @@
 
 set -e
 
-for i in ~/Documents/DVC/2024/point-charts/*.pdf; do
-  ~/Downloads/pdftotext -table $i converted-charts/2024/$(basename -- $i).txt
+for i in ~/Documents/DVC/2025/point-charts/*.pdf; do
+  ~/Downloads/pdftotext -table $i converted-charts/2025/$(basename -- $i).txt
 done
+# for i in ~/Documents/DVC/2024/point-charts/*.pdf; do
+#   ~/Downloads/pdftotext -table $i converted-charts/2024/$(basename -- $i).txt
+# done
 # for i in ~/Documents/DVC/2023/point-charts/*.pdf; do
 #   ~/Downloads/pdftotext -table $i converted-charts/2023/$(basename -- $i).txt
 # done

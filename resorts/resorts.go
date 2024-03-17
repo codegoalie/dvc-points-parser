@@ -11,7 +11,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/lane-c-wagner/go-tinydate"
+	tinydate "github.com/lane-c-wagner/go-tinydate"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // Resort models a WDW resort
@@ -49,9 +51,11 @@ type dateRange struct {
 
 const dateParseFormat = "Jan 2 2006"
 
-var monthDayRegexp = regexp.MustCompile(`^[a-zA-z]{3} \d`)
-var yearRegexp = regexp.MustCompile(`(\d{4})`)
-var dateSplitRegexp = regexp.MustCompile(`--| - `)
+var (
+	monthDayRegexp  = regexp.MustCompile(`^[a-zA-z]{3} \d`)
+	yearRegexp      = regexp.MustCompile(`(\d{4})`)
+	dateSplitRegexp = regexp.MustCompile(`--| - `)
+)
 
 func ParseFile(filename string) (Resort, error) {
 	file, err := os.Open(filename)
@@ -64,7 +68,7 @@ func ParseFile(filename string) (Resort, error) {
 	year := yearRegexp.FindStringSubmatch(filename)[1]
 	// fmt.Println("Parsing", filename, year)
 
-	resort, err := parseFile(file, year)
+	resort, err := ParseUneditedFile(file, year)
 	if err != nil {
 		err = fmt.Errorf("failed to parse file %s: %w", filename, err)
 		return resort, err
@@ -94,7 +98,7 @@ func parseFile(file *os.File, year string) (Resort, error) {
 		case 0:
 			parseName(&resort, line)
 		case 1:
-			parseRoomType(&roomTypes, line)
+			roomTypes = append(roomTypes, parseRoomType(line))
 		case 2:
 			parseRoomDescriptions(&roomTypes[stateInnterIndex], line)
 		case 3:
@@ -125,14 +129,102 @@ func parseFile(file *os.File, year string) (Resort, error) {
 	return resort, nil
 }
 
+func ParseUneditedFile(file io.Reader, year string) (Resort, error) {
+	resort := Resort{}
+	state := 0
+	roomTypes := []RoomType{}
+	viewLegend := map[string]string{}
+	stateInnterIndex := 0
+	coll := collector{}
+
+	r := regexp.MustCompile(`Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sept|Oct|Nov|Dec`)
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" {
+			state++
+			stateInnterIndex = 0
+			continue
+		}
+
+		switch state {
+		case 0:
+			parseName(&resort, line)
+		case 1:
+			roomTypes = append(roomTypes, parseRoomType(line))
+		case 2:
+			parseRoomDescriptions(&roomTypes[stateInnterIndex], line)
+		case 3:
+			parseViewLegend(&viewLegend, line)
+		case 4:
+			parseRoomViews(&resort, roomTypes[stateInnterIndex], viewLegend, line)
+		default:
+			tokens := strings.Fields(line)
+			fmt.Println("t", tokens)
+			if len(tokens) < 1 {
+				continue
+			}
+
+			if strings.Contains(line, "SUN") {
+				if len(coll.Dates) > 0 {
+					collectorToResort(&coll, &resort)
+					coll = collector{}
+				}
+
+				pointsLine := line[strings.Index(line, "SUN"):]
+				// fmt.Println("p", pointsLine)
+				parsePoints(&coll, pointsLine)
+				// fmt.Println("c", coll)
+			}
+
+			// fmt.Println("f", tokens[0], tokens[5])
+			if strings.HasPrefix(tokens[0], "FRI") || (len(tokens) > 5 && strings.HasPrefix(tokens[5], "FRI")) {
+				parsePoints(&coll, strings.Join(tokens[5:], " "))
+				// fmt.Println("cf", coll)
+			}
+
+			if r.MatchString(tokens[0]) {
+				parseDates(&coll, year, strings.Join(tokens[0:5], " "))
+				// fmt.Println("cd", coll)
+			}
+		}
+		stateInnterIndex++
+	}
+
+	collectorToResort(&coll, &resort)
+
+	err := scanner.Err()
+	if err != nil && !errors.Is(err, io.EOF) {
+		err = fmt.Errorf("failed to read from file: %w", err)
+		return resort, err
+	}
+
+	return resort, nil
+}
+
+func freeParsePoints(scanner *bufio.Scanner) collector {
+	coll := collector{}
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		tokens := strings.Fields(line)
+		fmt.Println(tokens)
+		if len(tokens) == 0 {
+			continue
+		}
+
+	}
+	return coll
+}
+
 func parseName(resort *Resort, line string) {
 	resort.Name = line
 }
 
-func parseRoomType(roomTypes *[]RoomType, line string) {
-	*roomTypes = append(*roomTypes, RoomType{
-		Name: strings.Title(strings.ToLower(line)),
-	})
+func parseRoomType(line string) RoomType {
+	caser := cases.Title(language.AmericanEnglish)
+	fmt.Println("rt", caser.String(strings.ToLower(line)))
+	return RoomType{Name: caser.String(strings.ToLower(line))}
 }
 
 func parseRoomDescriptions(roomType *RoomType, line string) {

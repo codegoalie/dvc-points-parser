@@ -13,6 +13,7 @@ import (
 	"github.com/codegoalie/dvc-points-parser/api"
 	"github.com/codegoalie/dvc-points-parser/models"
 	"github.com/codegoalie/dvc-points-parser/resorts"
+	"github.com/urfave/cli"
 )
 
 const dryRun = false
@@ -60,179 +61,234 @@ func (r Results) Swap(i, j int) {
 }
 
 func main() {
-	var err error
-	client := api.New(serverURL)
-	remotes, err := client.GetResorts()
-	if err != nil {
-		err = fmt.Errorf("failed to get resorts from API: %w", err)
-		log.Fatal(err)
-	}
-
-	targetPoints := 180
-	minNights := 5
-	results := Results{}
-
-	resortMapping := map[string]map[string]map[string]int32{}
-	err = json.Unmarshal([]byte(resortMapJSON), &resortMapping)
-	if err != nil {
-		err = fmt.Errorf("failed to unmarshal resort map: %w", err)
-		log.Fatal(err)
-	}
-	fmt.Println(resortMapping)
-	insertStatement := strings.Builder{}
-	insertStatement.WriteString("INSERT INTO travel_periods (room_type_id, start_on, end_on, weekday_points, weekend_points) VALUES \n")
-
-	//root := "vgf/"
-	root := "converted-charts/2024/"
-	// // root := "converted-charts/2022/FINAL_2022_DVC_VGF_Pt_Chts.pdf.txt"
-	err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
-		if info.IsDir() {
-			return nil
-		}
-
-		fmt.Println(path)
-		resort, err := resorts.ParseFile(path)
-		if err != nil {
-			err = fmt.Errorf("failed to parse files: %w", err)
-			log.Println(err)
-			return err
-		}
-
-		var ok bool
-		idMap, ok := resortMapping[resort.Name]
-		if !ok {
-			log.Fatal("Resort not found in map:", resort.Name)
-		}
-
-		// log.Printf("%+v\t%d\n", resort.Name, len(resort.RoomTypes))
-
-		remote := remoteByName(resort, remotes)
-		if remote == nil {
-			log.Println("Failed to find resort by name", resort.Name)
-			return nil
-		}
-		// log.Println(remote)
-
-		remoteRooms, err := client.GetRoomTypes(remote.ID)
-		if err != nil {
-			err = fmt.Errorf("failed to get room types for %s: %w", remote.Name, err)
-			return err
-		}
-
-		// if strings.Contains(resort.Name, "Vero") ||
-		// 	strings.Contains(resort.Name, "Aulani") ||
-		// 	strings.Contains(resort.Name, "Saratoga") ||
-		// 	strings.Contains(resort.Name, "Hilton") {
+	app := &cli.App{
+		Name:  "points-parser",
+		Usage: "Parse DVC points charts and upload to API",
+		// Flags: flags,
+		// Action: func(c *cli.Context) error {
+		// 	facts.PrintAFact(webhookURL)
 		// 	return nil
-		// }
-
-		for _, roomType := range resort.RoomTypes {
-			typeMap, ok := idMap[roomType.Name]
-			if !ok {
-				log.Fatal("Failed to find room type in map", roomType.Name)
-			}
-			var id int32
-			if id, ok = typeMap[roomType.ViewType]; !ok {
-				log.Fatalf("Failed to find view in map %s", roomType.ViewType)
-			}
-			fmt.Println(resort.Name, roomType.Name, roomType.ViewType, id)
-
-			// if strings.Contains(roomType.Name, "Studio") {
-			// 	continue
-			// }
-
-			// if strings.Contains(resort.Name, "Animal") &&
-			// 	(strings.Contains(roomType.ViewType, "Standard") ||
-			// 		strings.Contains(roomType.ViewType, "Value")) {
-			// 	continue
-			// }
-			remoteRoom := remoteRoom(roomType, remoteRooms)
-			if remoteRoom == nil {
-				log.Printf("%+v\n", remoteRooms)
-				log.Println("Failed to find remote room type", remote.Name, roomType.Name, roomType.ViewType)
-				continue
-			}
-
-			for _, pointBlock := range roomType.PointChart {
-				insertStatement.WriteString(
-					fmt.Sprintf(
-						"(%d, '%s', '%s', %d, %d),\n",
-						id,
-						pointBlock.CheckInAt.Format("2006-01-02"),
-						pointBlock.CheckOutAt.Format("2006-01-02"),
-						pointBlock.WeekdayPoints,
-						pointBlock.WeekendPoints,
-					),
-				)
-				daysInBlock := int(pointBlock.CheckOutAt.Sub(pointBlock.CheckInAt).Hours() / 24)
-				totalPoints := 0
-				var nightsPossible int
-				for nightsPossible = 0; nightsPossible < 31 && nightsPossible <= daysInBlock; nightsPossible++ {
-					dow := time.Weekday(nightsPossible % 7)
-					var newPoints int
-					if dow == time.Friday || dow == time.Saturday {
-						newPoints = pointBlock.WeekendPoints
-					} else {
-						newPoints = pointBlock.WeekdayPoints
+		// },
+		Commands: []cli.Command{
+			{
+				Name: "parse-one",
+				Action: func(c *cli.Context) error {
+					args := c.Args()
+					if len(args) < 1 {
+						return fmt.Errorf("Please specify a file to parse")
 					}
 
-					if totalPoints+newPoints > targetPoints {
-						break
-					}
-					totalPoints += newPoints
-				}
+					fmt.Println("Parsing one", args)
 
-				if nightsPossible >= minNights {
-					results = append(results, Result{
-						resort:         resort,
-						roomType:       roomType,
-						pointBlock:     pointBlock,
-						possibleNights: nightsPossible,
-						totalPoints:    totalPoints,
+					f, err := os.Open(args.First())
+					if err != nil {
+						return fmt.Errorf("failed to open file: %w", err)
+					}
+
+					resort, err := resorts.ParseUneditedFile(f, "2025")
+					if err != nil {
+						err = fmt.Errorf("failed to parse file: %w", err)
+						log.Println(err)
+						return err
+					}
+
+					for _, roomType := range resort.RoomTypes {
+						fmt.Println(roomType.Name, roomType.ViewType)
+						// fmt.Printf("%v\n", points)
+					}
+
+					return nil
+				},
+			},
+			{
+				Name: "parse-all",
+				Action: func(c *cli.Context) error {
+					var err error
+					client := api.New(serverURL)
+					remotes, err := client.GetResorts()
+					if err != nil {
+						err = fmt.Errorf("failed to get resorts from API: %w", err)
+						log.Fatal(err)
+					}
+
+					targetPoints := 180
+					minNights := 5
+					results := Results{}
+
+					resortMapping := map[string]map[string]map[string]int32{}
+					err = json.Unmarshal([]byte(resortMapJSON), &resortMapping)
+					if err != nil {
+						err = fmt.Errorf("failed to unmarshal resort map: %w", err)
+						log.Fatal(err)
+					}
+					fmt.Println(resortMapping)
+					insertStatement := strings.Builder{}
+					insertStatement.WriteString(
+						"INSERT INTO travel_periods (room_type_id, start_on, end_on, weekday_points, weekend_points) VALUES \n",
+					)
+
+					// root := "vgf/"
+					root := "converted-charts/2025/"
+					// // root := "converted-charts/2022/FINAL_2022_DVC_VGF_Pt_Chts.pdf.txt"
+					err = filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+						if info.IsDir() {
+							return nil
+						}
+
+						fmt.Println(path)
+						resort, err := resorts.ParseFile(path)
+						fmt.Println("r", resort)
+						if err != nil {
+							err = fmt.Errorf("failed to parse files: %w", err)
+							log.Println(err)
+							return err
+						}
+
+						var ok bool
+						idMap, ok := resortMapping[resort.Name]
+						if !ok {
+							log.Fatal("Resort not found in map:", resort.Name)
+						}
+
+						// log.Printf("%+v\t%d\n", resort.Name, len(resort.RoomTypes))
+
+						remote := remoteByName(resort, remotes)
+						if remote == nil {
+							log.Println("Failed to find resort by name", resort.Name)
+							return nil
+						}
+						// log.Println(remote)
+
+						remoteRooms, err := client.GetRoomTypes(remote.ID)
+						if err != nil {
+							err = fmt.Errorf("failed to get room types for %s: %w", remote.Name, err)
+							return err
+						}
+
+						// if strings.Contains(resort.Name, "Vero") ||
+						// 	strings.Contains(resort.Name, "Aulani") ||
+						// 	strings.Contains(resort.Name, "Saratoga") ||
+						// 	strings.Contains(resort.Name, "Hilton") {
+						// 	return nil
+						// }
+
+						for _, roomType := range resort.RoomTypes {
+							typeMap, ok := idMap[roomType.Name]
+							if !ok {
+								log.Fatal("Failed to find room type in map", roomType.Name)
+							}
+							var id int32
+							if id, ok = typeMap[roomType.ViewType]; !ok {
+								log.Fatalf("Failed to find view in map '%s' %s'", roomType.Name, roomType.ViewType)
+							}
+							fmt.Println(resort.Name, roomType.Name, roomType.ViewType, id)
+
+							// if strings.Contains(roomType.Name, "Studio") {
+							// 	continue
+							// }
+
+							// if strings.Contains(resort.Name, "Animal") &&
+							// 	(strings.Contains(roomType.ViewType, "Standard") ||
+							// 		strings.Contains(roomType.ViewType, "Value")) {
+							// 	continue
+							// }
+							remoteRoom := remoteRoom(roomType, remoteRooms)
+							if remoteRoom == nil {
+								log.Printf("%+v\n", remoteRooms)
+								log.Println("Failed to find remote room type", remote.Name, roomType.Name, roomType.ViewType)
+								continue
+							}
+
+							for _, pointBlock := range roomType.PointChart {
+								insertStatement.WriteString(
+									fmt.Sprintf(
+										"(%d, '%s', '%s', %d, %d),\n",
+										id,
+										pointBlock.CheckInAt.Format("2006-01-02"),
+										pointBlock.CheckOutAt.Format("2006-01-02"),
+										pointBlock.WeekdayPoints,
+										pointBlock.WeekendPoints,
+									),
+								)
+								daysInBlock := int(pointBlock.CheckOutAt.Sub(pointBlock.CheckInAt).Hours() / 24)
+								totalPoints := 0
+								var nightsPossible int
+								for nightsPossible = 0; nightsPossible < 31 && nightsPossible <= daysInBlock; nightsPossible++ {
+									dow := time.Weekday(nightsPossible % 7)
+									var newPoints int
+									if dow == time.Friday || dow == time.Saturday {
+										newPoints = pointBlock.WeekendPoints
+									} else {
+										newPoints = pointBlock.WeekdayPoints
+									}
+
+									if totalPoints+newPoints > targetPoints {
+										break
+									}
+									totalPoints += newPoints
+								}
+
+								if nightsPossible >= minNights {
+									results = append(results, Result{
+										resort:         resort,
+										roomType:       roomType,
+										pointBlock:     pointBlock,
+										possibleNights: nightsPossible,
+										totalPoints:    totalPoints,
+									})
+								}
+								reqs := []api.PointsReq{}
+								currentStayOn := pointBlock.CheckInAt
+								for {
+
+									thesePoints := pointBlock.WeekdayPoints
+									if currentStayOn.Weekday() == time.Friday || currentStayOn.Weekday() == time.Saturday {
+										thesePoints = pointBlock.WeekendPoints
+									}
+
+									reqs = append(reqs, api.PointsReq{
+										RoomTypeID: remoteRoom.ID,
+										StayOn:     currentStayOn.ToTime(),
+										Amount:     thesePoints,
+									})
+									// fmt.Println(req)
+
+									currentStayOn = currentStayOn.AddDate(0, 0, 1)
+
+									if currentStayOn.After(pointBlock.CheckOutAt) {
+										break
+									}
+								}
+								if !dryRun {
+									client.CreatePoints(reqs)
+								}
+							}
+						}
+
+						return nil
 					})
-
-				}
-				reqs := []api.PointsReq{}
-				currentStayOn := pointBlock.CheckInAt
-				for {
-
-					thesePoints := pointBlock.WeekdayPoints
-					if currentStayOn.Weekday() == time.Friday || currentStayOn.Weekday() == time.Saturday {
-						thesePoints = pointBlock.WeekendPoints
+					if err != nil {
+						panic(err)
 					}
 
-					reqs = append(reqs, api.PointsReq{
-						RoomTypeID: remoteRoom.ID,
-						StayOn:     currentStayOn.ToTime(),
-						Amount:     thesePoints,
-					})
-					// fmt.Println(req)
+					sort.Sort(results)
+					fmt.Println(insertStatement.String())
 
-					currentStayOn = currentStayOn.AddDate(0, 0, 1)
-
-					if currentStayOn.After(pointBlock.CheckOutAt) {
-						break
-					}
-				}
-				if !dryRun {
-					client.CreatePoints(reqs)
-				}
-			}
-		}
-
-		return nil
-	})
-	if err != nil {
-		panic(err)
+					// for _, result := range results {
+					// 	fmt.Printf("%s", result)
+					// }
+					// fmt.Println(len(results))
+					return nil
+				},
+			},
+		},
 	}
+	app.UseShortOptionHandling = true
 
-	sort.Sort(results)
-	fmt.Println(insertStatement.String())
-
-	// for _, result := range results {
-	// 	fmt.Printf("%s", result)
-	// }
-	// fmt.Println(len(results))
+	err := app.Run(os.Args)
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func remoteByName(local resorts.Resort, remotes []models.Resort) *models.Resort {
@@ -588,6 +644,35 @@ const resortMapJSON = `{
 		"Two-Bedroom Villa": {
 			"Lake View": 139,
 			"Standard View": 137
+		}
+	},
+	"The Villas at Disneyland Hotel": {
+		"Duo Studio": {
+			"Standard View": 145,
+			"Preferred View": 146,
+			"Garden View": 147
+		},
+		"Deluxe Studio": {
+			"Standard View": 148,
+			"Preferred View": 149,
+			"Garden View": 150
+		},
+		"One-Bedroom Villa": {
+			"Preferred View": 151
+		},
+		"Two-Bedroom Lock-Off Villa": {
+			"Preferred View": 152
+		},
+		"Two-Bedroom Villa": {
+			"Preferred View": 153
+		},
+		"Three-Bedroom Grand Villa": {
+			"Preferred View": 154
+		}
+	},
+	"The Cabins at Disney's Fort Wilderness Resort - A Disney Vacation Club Resort": {
+		"One Bedroom Cabin": {
+			"Standard View": 155
 		}
 	}
 }`
