@@ -21,7 +21,7 @@ const dryRun = false
 var parsedResorts []resorts.Resort
 
 // const serverURL = "http://localhost:3000/v1"
-const serverURL = "https://utilidoor-wsrcsyye3a-uc.a.run.app/v1"
+const serverURL = "https://api.lineleader.io/v1"
 
 // Result mapsa trip finding result
 type Result struct {
