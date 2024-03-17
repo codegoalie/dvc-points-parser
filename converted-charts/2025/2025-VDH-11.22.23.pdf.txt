@@ -5,8 +5,8 @@ DELUXE STUDIO
 ONE-BEDROOM VILLA
 TWO-BEDROOM VILLA
 THREE-BEDROOM GRAND VILLA
-GARDEN ROOM DUO STUDIO
-GARDEN ROOM DELUXE STUDIO
+DUO STUDIO
+DELUXE STUDIO
 
 (Sleeps up to 2)
 (Sleeps up to 4)
@@ -18,14 +18,15 @@ GARDEN ROOM DELUXE STUDIO
 
 S - Standard View
 P - Preferred View
+G - Garden Room
 
 S P
 S    P
 P
 P
 P
-S
-S
+G
+G
 
                                   SUN--THU   10   11           13   15           30                43                                                                                                 94       12                                         19
 
